@@ -1,0 +1,65 @@
+name: Case 3 - Build and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
+      - name: Run tests
+        run: pytest -v
+
+      - name: Prepare application
+        run: |
+          mkdir -p dist
+          cp main.py dist/
+          cp test_main.py dist/
+          cd dist
+          zip -r application.zip main.py test_main.py
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-application
+          path: dist/application.zip
+
+  deploy:
+    name: Deploy application
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: python-application
+
+      - name: Extract application
+        run: |
+          unzip application.zip -d application
+          ls -la application
+
+      - name: Deployment simulation
+        run: |
+          echo "Starting deployment..."
+          echo "Application files are ready."
+          echo "Deployment simulation completed successfully."
